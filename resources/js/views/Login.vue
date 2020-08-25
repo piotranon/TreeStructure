@@ -89,7 +89,6 @@ export default {
 				})
 				.catch(function (error) {
 					currentObj.message = "";
-					console.log(error.response.data.message);
 					error.response.data.message.forEach(function (message) {
 						currentObj.message += message;
 					});
