@@ -71,7 +71,7 @@ export default {
 	},
 	created() {
 		if (sessionStorage.getItem("user"))
-			this.$router.push({ name: "About" });
+			this.$router.push({ name: "Admin" });
 	},
 	methods: {
 		login() {
@@ -85,7 +85,7 @@ export default {
 					password: this.password,
 				})
 				.then(() => {
-					this.$router.push({ name: "About" });
+					this.$router.push({ name: "Admin" });
 				})
 				.catch(function (error) {
 					currentObj.message = "";

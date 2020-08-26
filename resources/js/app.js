@@ -29,6 +29,7 @@ const app = new Vue({
             response => response,
             error => {
                 if (error.response.status === 401) {
+                    console.log(error.response)
                     this.$store.dispatch('logout')
                 }
                 return Promise.reject(error)

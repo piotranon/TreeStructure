@@ -3,24 +3,25 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
-import Home from '.././views/Home'
-import About from '.././views/About'
+// import Home from '.././views/Home'
+import Admin from '.././views/Admin'
 import Login from '.././views/Login'
 import Register from '.././views/Register'
 import NotFound from '.././views/NotFound'
+import Logout from '.././views/Logout'
 
 const routes = [{
         path: '/',
         name: 'Home',
-        component: Home
+        redirect: 'Login'
     },
     {
-        path: '/about',
-        name: 'About',
+        path: '/admin',
+        name: 'Admin',
         meta: {
             auth: true
         },
-        component: About
+        component: Admin
     },
     {
         path: '/login',
@@ -35,7 +36,10 @@ const routes = [{
     {
         path: '/logout',
         name: 'Logout',
-        component: Register
+        meta: {
+            auth: true
+        },
+        component: Logout
     },
     {
         path: '/404',

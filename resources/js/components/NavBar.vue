@@ -26,24 +26,17 @@
 			>
 				<li class="nav-item">
 					<router-link
-						:to="{name: 'Home'}"
+						:to="{name: 'Admin'}"
 						tag="a"
 						:class="['nav-link']"
-					>Home</router-link>
+					>Admin</router-link>
 				</li>
 				<li class="nav-item">
 					<router-link
-						:to="{name: 'About'}"
+						:to="{name: 'Logout'}"
 						tag="a"
-						:class="['nav-link']"
-					>About</router-link>
-				</li>
-				<li class="nav-item">
-					<a
-						href="#"
-						@click="logout()"
-						:class="['nav-link']"
-					>Logout</a>
+						:class="['nav-link', '']"
+					>Logout</router-link>
 				</li>
 			</div>
 			<div
@@ -74,11 +67,6 @@ import { mapGetters } from "vuex";
 export default {
 	computed: {
 		...mapGetters(["isLogged"]),
-	},
-	methods: {
-		logout() {
-			this.$store.dispatch("logout");
-		},
 	},
 };
 </script>

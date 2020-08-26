@@ -103,7 +103,7 @@ export default {
 	},
 	created() {
 		if (sessionStorage.getItem("user"))
-			this.$router.push({ name: "About" });
+			this.$router.push({ name: "Admin" });
 	},
 	methods: {
 		register() {
