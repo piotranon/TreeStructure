@@ -18,8 +18,12 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::post('/login',"AuthController@login");
-Route::post('/register',"AuthController@register");
+Route::post('/login', "AuthController@login");
+Route::post('/register', "AuthController@register");
 
 //storing node
-Route::middleware('auth:sanctum')->post('/nodes',"NodeController@storeNode");
+Route::middleware('auth:sanctum')->post('/node', "NodeController@storeNode");
+Route::middleware('auth:sanctum')->post('/node/changeOrder', "NodeController@changeOrder");
+
+Route::middleware('auth:sanctum')->delete('/node', "NodeController@destroy");
+Route::middleware('auth:sanctum')->patch('/node', "NodeController@update");
