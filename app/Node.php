@@ -10,10 +10,10 @@ use App\User;
 class Node extends Model
 {
     protected $fillable = [
-        'owner_id',//user id
-        'parent_id',//parent node id
-        'name',//node name
-        'order',//order in subtree
+        'owner_id', //user id
+        'parent_id', //parent node id
+        'name', //node name
+        'order', //order in subtree
     ];
 
     public function owner(): BelongsTo
@@ -28,7 +28,13 @@ class Node extends Model
 
     public function childNodes(): HasMany
     {
-        return $this->hasMany(Node::class,'parent_id','id');
+        return $this->hasMany(Node::class, 'parent_id', 'id');
+        // return $this->hasMany(Node::class)->with(['childNodes']);
+    }
+
+    public function childs(): HasMany
+    {
+        return $this->hasMany(Node::class, 'parent_id', 'id')->with(['childs']);
         // return $this->hasMany(Node::class)->with(['childNodes']);
     }
 }

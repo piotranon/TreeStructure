@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', "AuthController@login");
 Route::post('/register', "AuthController@register");
 
-//storing node
+//Node requests
+Route::middleware('auth:sanctum')->get('/node', "NodeController@getForUser");
 Route::middleware('auth:sanctum')->post('/node', "NodeController@storeNode");
 Route::middleware('auth:sanctum')->post('/node/changeOrder', "NodeController@changeOrder");
 

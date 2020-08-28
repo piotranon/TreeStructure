@@ -9,6 +9,23 @@ use Exception;
 
 class NodeController extends Controller
 {
+    public function getForUser(Request $request)
+    {
+        $user = $request->user();
+
+        // return response()->json($user, 200);
+
+        $nodes = new Node();
+        $nodes = $nodes->with('childs')->whereNull('parent_id')->where('owner_id', $user->id)->get();
+
+        return response()->json($nodes, 200);
+    }
+    //add node to database
+    //if user specified parent id
+    //add to parent
+    //if user specified order
+    //add at position move elements to right
+    //if order not specified add at end
     public function storeNode(Request $request)
     {
         $validated = $request->validate(
@@ -25,7 +42,7 @@ class NodeController extends Controller
         // checking if user specified parent id
         // if yes search that parent node
         // check if user that made request is his owner
-        if (null !== $request->get('parent_id')) {
+        if (null !== $validated['parent_id']) {
             $parentNode = new Node();
             $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($validated['parent_id']);
 
@@ -39,25 +56,19 @@ class NodeController extends Controller
 
             // if order specified adding at position
             // else checking if parent node has subnodes
-            // adding at end
-            if (null !== $request->get('order')) {
-                // user specified order
-                // checking if order is already in table
-                $orderArray = [];
+            // adding at position
+            if (null !== $validated['order']) {
+                if ($parentNode->childNodes->count() + 1 < $validated['order']) {
+                    $validated['order'] = $parentNode->childNodes->count() + 1;
+                }
                 foreach ($parentNode->childNodes as $node) {
-                    array_push($orderArray, $node->order);
+                    if ($node->order >= $validated['order']) {
+                        $node->order = $node->order + 1;
+                    }
                 }
-
-                //checking if order is already in childNodes
-                //if is add at end if not add at position
-                if (in_array($validated['order'], $orderArray)) {
-                    $order = $parentNode->childNodes->count() + 1;
-                    $newNode->order = $order;
-                } else {
-                    $newNode->order = $validated['order'];
-                }
+                $newNode->order = $validated['order'];
             } else {
-                $order = count($parentNode->childNodes) + 1;
+                $order = $parentNode->childNodes->count() + 1;
                 $newNode->order = $order;
             }
         } else {
@@ -68,18 +79,18 @@ class NodeController extends Controller
             // if order specified adding at position
             // else counting mainNodes (no parent, user is owner)
             // and adding at position
-            if (null !== $request->get('order')) {
-                $orderArray = [];
-                foreach ($mainNodes as $node) {
-                    array_push($orderArray, $node->order);
-                }
+            if (null !== $validated['order']) {
 
-                if (in_array($validated['order'], $orderArray)) {
-                    $order = $mainNodes->count() + 1;
-                    $newNode->order = $order;
-                } else {
-                    $newNode->order = $validated['order'];
+                if ($mainNodes->count() + 1 < $validated['order']) {
+                    $validated['order'] = $mainNodes->count() + 1;
                 }
+                foreach ($mainNodes as $node) {
+                    if ($node->order >= $validated['order']) {
+                        $node->order = $node->order + 1;
+                        $node->save();
+                    }
+                }
+                $newNode->order = $validated['order'];
             } else {
                 $order = $mainNodes->count() + 1;
                 $newNode->order = $order;
@@ -206,7 +217,7 @@ class NodeController extends Controller
         );
 
         $deletednode = new Node();
-        $deletednode = $deletednode->with(['owner'])->findOrFail($validated['node_id']);
+        $deletednode = $deletednode->with(['owner', 'childNodes'])->findOrFail($validated['node_id']);
 
         $user = $request->user();
 
@@ -218,22 +229,55 @@ class NodeController extends Controller
                 $parentNode = $parentNode->with(['owner', 'childNodes'])->where('id', 'not like', $deletednode->id)->findOrFail($deletednode->parent_id);
 
                 foreach ($parentNode->childNodes as $node) {
+
                     if ($node->order > $deletednode->order) {
+
+                        $node->order = $node->order - 1;
+                        $node->save();
+                    }
+                }
+            } else {
+                $mainNodes = new Node();
+                $mainNodes = $mainNodes->whereNull('parent_id')->where('owner_id', $user->id)->where('id', 'not like', $deletednode->id)->get();
+
+                foreach ($mainNodes as $node) {
+
+                    if ($node->order > $deletednode->id) {
+
                         $node->order = $node->order - 1;
                         $node->save();
                     }
                 }
             }
 
-            $node->delete();
-            return response()->json(['message' => "Node Destroyed.", 'node' => $deletednode], 403);
+            if ($this->destroyNodeWithSubTree($deletednode->id)) {
+                return response()->json(['message' => "Node Destroyed.", 'node' => $deletednode], 200);
+            } else {
+                return response()->json(['message' => "Destoring a Node failed"], 403);
+            }
         } else {
             return response()->json(['errors' => ['node_id' => ["You don't have rights to this Node."]], 'message' => "The given data was invalid."], 403);
         }
     }
 
+    private function destroyNodeWithSubTree($node_id)
+    {
+        $node = new Node();
+        $node = $node->with(['childNodes'])->findOrFail($node_id);
+
+        if (null !== $node->childNodes) {
+            foreach ($node->childNodes as $child) {
+                if (!$this->destroyNodeWithSubTree($child->id))
+                    return false;
+            }
+        }
+        $node->delete();
+        return true;
+    }
 
 
+    //if parent specified move object to parent
+    //if order specified move to position others to right
     public function update(Request $request)
     {
         $validated = $request->validate(
@@ -248,91 +292,55 @@ class NodeController extends Controller
         $updatedNode = new Node();
         $updatedNode = $updatedNode->with(['owner'])->findOrFail($validated['node_id']);
 
-        $user = $request->user();
+        $updatedNode = $validated['name'];
 
+        $user = $request->user();
         if ($updatedNode->owner->id == $user->id) {
             if (null !== $validated['parent_id']) {
                 $parentNode = new Node();
-                $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($updatedNode->parent_id);
+                $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($validated['parent_id']);
 
                 if ($parentNode->owner->id == $user->id) {
-
                     if (null !== $validated['order']) {
-                    } else {
-                        $parentNode->childNodes->count() + 1;
-                    }
-
-                    $updatedNode->parent_id = $validated['parent_id'];
-                } else {
-                    return response()->json(['errors' => ['parent_id' => ["You don't have rights to this Node."]], 'message' => "The given data was invalid."], 403);
-                }
-            }
-            if (null !== $validated['name']) {
-                $updatedNode->name = $validated['name'];
-            }
-
-            //if user specified order
-            //change order of other elements so item can fit that spot
-
-            if (null !== $validated['order']) {
-                if (null !== $updatedNode->parent_id) {
-                    $parentNode = new Node();
-                    $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($updatedNode->parent_id);
-
-                    if ($parentNode->owner->id == $user->id) {
-
-                        $differenceInOrder = $updatedNode->order - $validated['order'];
-
                         if ($validated['order'] > $parentNode->childNodes->count() + 1) {
                             $validated['order'] = $parentNode->childNodes->count() + 1;
-                        }
-                        foreach ($parentNode->childNodes as $node) {
-                            if ($differenceInOrder > 0) {
-                                if ($node->order > $updatedNode->order && $node->order <= $validated['order']) {
-                                    $node->order = $node->order - 1;
-                                    $node->save();
-                                }
-                            } elseif ($differenceInOrder < 0) {
-                                if ($node->order < $updatedNode->order  && $node->order >= $validated['order']) {
+                        } else {
+                            foreach ($parentNode->childNodes as $node) {
+                                if ($node->order >= $validated['order']) {
                                     $node->order = $node->order + 1;
                                     $node->save();
                                 }
                             }
                         }
-
-                        $updatedNode->order = $validated['order'];
                     } else {
-                        return response()->json(['errors' => ['parent_id' => ["You don't have rights to this Node."]], 'message' => "The given data was invalid."], 403);
+                        $validated['order'] = $parentNode->childNodes->count() + 1;
                     }
+                    $updatedNode->parent_id = $parentNode->id;
+                    $updatedNode->order = $validated['order'];
                 } else {
-                    //no parent id
+                    return response()->json(['errors' => ['parent_id' => ["You don't have rights to this Node."]], 'message' => "The given data was invalid."], 403);
+                }
+            } else {
+                $mainNodes = new Node();
+                $mainNodes = $mainNodes->whereNull('parent_id')->where('owner_id', $user->id)->where('id', 'not like', $updatedNode->id)->get();
 
-                    $mainNodes = new Node();
-                    $mainNodes = $mainNodes->whereNull('parent_id')->where('owner_id', $user->id)->where('id', 'not like', $updatedNode->id)->get();
-
-                    $differenceInOrder = $updatedNode->order - $validated['order'];
-
+                if (null !== $validated['order']) {
                     if ($validated['order'] > $mainNodes->count() + 1) {
                         $validated['order'] = $mainNodes->count() + 1;
-                    }
-                    foreach ($mainNodes as $node) {
-                        if ($differenceInOrder > 0) {
-                            if ($node->order > $updatedNode->order && $node->order <= $validated['order']) {
-                                $node->order = $node->order - 1;
-                                $node->save();
-                            }
-                        } elseif ($differenceInOrder < 0) {
-                            if ($node->order < $updatedNode->order  && $node->order >= $validated['order']) {
+                    } else {
+                        foreach ($mainNodes as $node) {
+                            if ($node->order >= $validated['order']) {
                                 $node->order = $node->order + 1;
                                 $node->save();
                             }
                         }
                     }
-
                     $updatedNode->order = $validated['order'];
+                } else {
+                    $validate['order'] = $mainNodes->count() + 1;
                 }
+                $updatedNode->order = $validated['order'];
             }
-
             $node->save();
 
             return response()->json(['message' => "Node Updated.", 'node' => $node], 403);

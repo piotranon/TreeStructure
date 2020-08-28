@@ -9,8 +9,12 @@ import store from './store'
 Vue.config.productionTip = false
 
 //api requests
-import API from "./api";
-Vue.prototype.$http = API;
+// import API from "./api";
+// Vue.prototype.$http = API;
+
+import axios from 'axios';
+
+Vue.prototype.$http = axios;
 
 // eslint-disable-next-line
 const app = new Vue({
@@ -25,7 +29,7 @@ const app = new Vue({
             const userData = JSON.parse(userInfo)
             this.$store.commit('setUserData', userData)
         }
-        API.interceptors.response.use(
+        axios.interceptors.response.use(
             response => response,
             error => {
                 if (error.response.status === 401) {
