@@ -15,3 +15,4 @@ Create an app that will allow user to work on tree Nodes.
 1. Vue 2.6.12
 
 #### Sample view
+![Project Preview](/image.png)
