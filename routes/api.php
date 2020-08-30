@@ -22,9 +22,13 @@ Route::post('/login', "AuthController@login");
 Route::post('/register', "AuthController@register");
 
 //Node requests
-Route::middleware('auth:sanctum')->get('/node', "NodeController@getForUser");
+Route::middleware('auth:sanctum')->get('/node/all', "NodeController@getForUser");
+Route::middleware('auth:sanctum')->get('/node', "NodeController@getNode");
+Route::middleware('auth:sanctum')->get('/node/nameMapping', "NodeController@getNameMapping");
+
 Route::middleware('auth:sanctum')->post('/node', "NodeController@storeNode");
 Route::middleware('auth:sanctum')->post('/node/changeOrder', "NodeController@changeOrder");
 
-Route::middleware('auth:sanctum')->delete('/node', "NodeController@destroy");
+Route::middleware('auth:sanctum')->delete('/node/{id}', "NodeController@destroy");
+
 Route::middleware('auth:sanctum')->patch('/node', "NodeController@update");

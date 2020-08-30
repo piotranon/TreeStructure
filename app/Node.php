@@ -26,6 +26,11 @@ class Node extends Model
         return $this->belongsTo(Node::class);
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Node::class)->with(['childNodes']);
+    }
+
     public function childNodes(): HasMany
     {
         return $this->hasMany(Node::class, 'parent_id', 'id');
@@ -34,7 +39,7 @@ class Node extends Model
 
     public function childs(): HasMany
     {
-        return $this->hasMany(Node::class, 'parent_id', 'id')->with(['childs']);
+        return $this->hasMany(Node::class, 'parent_id', 'id')->with(['childs', 'parent'])->orderBy('order');
         // return $this->hasMany(Node::class)->with(['childNodes']);
     }
 }

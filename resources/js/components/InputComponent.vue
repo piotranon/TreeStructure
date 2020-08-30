@@ -30,11 +30,11 @@
 
 <script>
 export default {
-	props: ["label", "type", "name", "id", "placeholder", "error"],
+	props: ["label", "type", "name", "id", "placeholder", "error", "value"],
 
 	data() {
 		return {
-			value: "",
+			// value: this.value,
 		};
 	},
 

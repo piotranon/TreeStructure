@@ -1,10 +1,10 @@
 <template>
-	<nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm mb-3">
+	<nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
 		<a
 			class="navbar-brand"
 			href="/"
 		>
-			Single Page Application
+			Tree Structure
 		</a>
 		<button
 			class="navbar-toggler"

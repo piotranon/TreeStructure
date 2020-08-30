@@ -2,7 +2,7 @@
 	<div>
 		<navbar />
 		<div
-			class="container my-md-5"
+			class="container my-3"
 			style="min-height: 80vh"
 		>
 			<div class="row align-items-center h-100">
