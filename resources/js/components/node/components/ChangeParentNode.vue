@@ -28,7 +28,7 @@
 			>
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title">Change Parent Node for {{node.name}}</h5>
+						<h5 class="modal-title text-left">Change Parent Node for {{node.name}}</h5>
 						<button
 							:id="'closeChangeParentNodeModal'+node.id"
 							type="button"

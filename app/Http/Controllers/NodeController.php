@@ -55,65 +55,55 @@ class NodeController extends Controller
         $newNode = new Node();
         $user = $request->user();
 
-        // checking if user specified parent id
-        // if yes search that parent node
-        // check if user that made request is his owner
-        if (null !== $validated['parent_id']) {
+        $nodesToInterate = [];
+
+        //if user specified parent_id
+        //get all childs of that parent
+        //else get all main nodes
+
+
+        if (0 !== $request['parent_id'] && null !== $request['parent_id']) {
             $parentNode = new Node();
             $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($validated['parent_id']);
 
-            // checking if user is owner of the parent node
-            // if not error
             if ($parentNode->owner->id == $user->id) {
                 $newNode->parent_id = $validated['parent_id'];
             } else {
                 return response()->json(['errors' => ['parent_id' => ["You don't have rights to create Node for this Parent id."]], 'message' => "The given data was invalid."], 403);
             }
 
-            // if order specified adding at position
-            // else checking if parent node has subnodes
-            // adding at position
-            if (null !== $validated['order']) {
-                if ($parentNode->childNodes->count() + 1 < $validated['order']) {
-                    $validated['order'] = $parentNode->childNodes->count() + 1;
-                }
-                foreach ($parentNode->childNodes as $node) {
-                    if ($node->order >= $validated['order']) {
-                        $node->order = $node->order + 1;
-                    }
-                }
-                $newNode->order = $validated['order'];
-            } else {
-                $order = $parentNode->childNodes->count() + 1;
-                $newNode->order = $order;
-            }
-        } else {
+            $newNode->parent_id = $parentNode->id;
 
+            $nodesToInterate = $parentNode->childNodes;
+        } else {
             $mainNodes = new Node();
             $mainNodes = $mainNodes->whereNull('parent_id')->where('owner_id', $user->id)->get();
 
-            // if order specified adding at position
-            // else counting mainNodes (no parent, user is owner)
-            // and adding at position
-            if (null !== $validated['order']) {
+            $newNode->parent_id = null;
 
-                if ($mainNodes->count() + 1 < $validated['order']) {
-                    $validated['order'] = $mainNodes->count() + 1;
-                }
-                foreach ($mainNodes as $node) {
-                    if ($node->order >= $validated['order']) {
-                        $node->order = $node->order + 1;
-                        $node->save();
-                    }
-                }
-                $newNode->order = $validated['order'];
-            } else {
-                $order = $mainNodes->count() + 1;
-                $newNode->order = $order;
+            $nodesToInterate = $mainNodes;
+        }
+
+        $order = $nodesToInterate->count() + 1;
+
+        //if user specified order
+
+        if (null !== $request['order']) {
+            if ($validated['order'] < $nodesToInterate->count() + 1)
+                $order = $validated['order'];
+        }
+
+        // move nodes with same or higher order to right
+
+        foreach ($nodesToInterate as $node) {
+            if ($node->order >= $order) {
+                $node->order = $node->order + 1;
+                $node->save();
             }
         }
 
         $newNode->name = $validated['name'];
+        $newNode->order = $order;
         $newNode->owner()->associate($user);
         $newNode->save();
 
@@ -142,6 +132,7 @@ class NodeController extends Controller
             // if yes go to parent and check over his childs and change order over them
             // if no go to mainNode (get all for user where no parent) and change order over them
             $nodesToInterate = [];
+
             if (null !== $updatedNode->parent_id) {
                 $parentNode = new Node();
                 $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($updatedNode->parent_id);
@@ -153,6 +144,8 @@ class NodeController extends Controller
 
                 $nodesToInterate = $mainNodes;
             }
+            // return response()->json(['iter' => $nodesToInterate], 201);
+
 
             $newOrder = $updatedNode->order + $validated['orderAddValue'];
 
@@ -160,8 +153,8 @@ class NodeController extends Controller
                 $newOrder = 1;
             }
 
-            if ($newOrder > $nodesToInterate->count()) {
-                $newOrder = $nodesToInterate->count();
+            if ($newOrder > $nodesToInterate->count() + 1) {
+                $newOrder = $nodesToInterate->count() + 1;
             }
 
 
@@ -230,6 +223,7 @@ class NodeController extends Controller
 
                 $nodesToInterate = $mainNodes;
             }
+
             foreach ($nodesToInterate as $node) {
 
                 if ($node->order > $deletednode->order) {
@@ -289,7 +283,7 @@ class NodeController extends Controller
 
             $nodesToInterate = [];
 
-            if (0 !== $request['parent_id']) {
+            if (0 !== $request['parent_id'] && null !== $request['parent_id']) {
                 $parentNode = new Node();
                 $parentNode = $parentNode->with(['owner', 'childNodes'])->findOrFail($validated['parent_id']);
 

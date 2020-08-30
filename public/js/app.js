@@ -2261,7 +2261,7 @@ __webpack_require__.r(__webpack_exports__);
     return {
       componentKey: 0,
       showSettings: false,
-      showBody: false
+      showBody: true
     };
   },
   methods: {
@@ -2274,11 +2274,10 @@ __webpack_require__.r(__webpack_exports__);
     refresh: function refresh() {
       this.$emit("refresh");
       this.$emit("refreshNameMapping");
-      this.componentKey += 1;
-      console.log("node: " + this.node.id + " :key = " + this.componentKey);
     },
     refreshAll: function refreshAll() {
       this.$emit("refreshAll");
+      this.componentKey += 1;
     },
     refreshParent: function refreshParent() {
       var _this = this;
@@ -23123,14 +23122,12 @@ var render = function() {
       _c("div", { staticClass: "card w-100 mx-2" }, [
         _c("div", { staticClass: "card-header" }, [
           _c("div", { staticClass: "row" }, [
-            _c("div", { staticClass: "mt-auto mb-auto col-6 text-left" }, [
-              _c("b", [_vm._v("Name:")]),
-              _vm._v(" " + _vm._s(_vm.node.name) + " "),
-              _c("b", [_vm._v("Order:")]),
-              _vm._v(" " + _vm._s(_vm.node.order))
+            _c("div", { staticClass: "mt-auto mb-auto col-7 text-left" }, [
+              _vm._v("Name: "),
+              _c("b", [_vm._v(_vm._s(_vm.node.name))])
             ]),
             _vm._v(" "),
-            _c("div", { staticClass: "col-6 text-right" }, [
+            _c("div", { staticClass: "col-5 text-right" }, [
               _vm.showSettings && _vm.showBody
                 ? _c(
                     "div",
@@ -23206,7 +23203,7 @@ var render = function() {
           ])
         ]),
         _vm._v(" "),
-        _vm.showBody
+        _vm.showBody && _vm.node.childs.length > 0
           ? _c(
               "div",
               { staticClass: "card-body" },
@@ -23737,7 +23734,7 @@ var render = function() {
           [
             _c("div", { staticClass: "modal-content" }, [
               _c("div", { staticClass: "modal-header" }, [
-                _c("h5", { staticClass: "modal-title" }, [
+                _c("h5", { staticClass: "modal-title text-left" }, [
                   _vm._v("Change Parent Node for " + _vm._s(_vm.node.name))
                 ]),
                 _vm._v(" "),
@@ -23899,7 +23896,7 @@ var render = function() {
           key: _vm.componentKey + "mainNode" + passedNode.id,
           class: ["mt-3"],
           attrs: { node: passedNode },
-          on: { refresh: _vm.refresh, refreshAll: _vm.refreshAll }
+          on: { refresh: _vm.refreshAll, refreshAll: _vm.refreshAll }
         })
       }),
       _vm._v(" "),

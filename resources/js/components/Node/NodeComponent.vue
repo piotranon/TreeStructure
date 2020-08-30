@@ -4,8 +4,8 @@
 			<div class="card w-100 mx-2">
 				<div class="card-header">
 					<div class="row">
-						<div class="mt-auto mb-auto col-6 text-left"><b>Name:</b> {{ node.name }} <b>Order:</b> {{ node.order }}</div>
-						<div class="col-6 text-right">
+						<div class="mt-auto mb-auto col-7 text-left">Name: <b>{{ node.name }}</b></div>
+						<div class="col-5 text-right">
 							<div
 								style="all: unset;"
 								v-if="showSettings && showBody"
@@ -64,7 +64,7 @@
 				</div>
 				<div
 					class="card-body"
-					v-if="showBody"
+					v-if="showBody && node.childs.length>0"
 				>
 					<node-component
 						v-for="(transferredNode) in node.childs"
@@ -102,7 +102,7 @@ export default {
 		return {
 			componentKey: 0,
 			showSettings: false,
-			showBody: false,
+			showBody: true,
 		};
 	},
 	methods: {
@@ -115,13 +115,10 @@ export default {
 		refresh() {
 			this.$emit("refresh");
 			this.$emit("refreshNameMapping");
-			this.componentKey += 1;
-			console.log(
-				"node: " + this.node.id + " :key = " + this.componentKey
-			);
 		},
 		refreshAll() {
 			this.$emit("refreshAll");
+			this.componentKey += 1;
 		},
 		refreshParent() {
 			this.$http

@@ -6,7 +6,7 @@
 			:node="passedNode"
 			:key="componentKey+'mainNode'+passedNode.id"
 			:class="['mt-3']"
-			v-on:refresh="refresh"
+			v-on:refresh="refreshAll"
 			v-on:refreshAll="refreshAll"
 		/>
 
