@@ -8,7 +8,7 @@ Create an app that will allow user to work on tree Nodes.
 1. Remove a Node from tree.
 1. Edit a Node.
 1. Change order of Nodes in tree.
-1. Transfer Node to another Node.
+1. Transfer Node to another Node/Branch.
 
 #### Technologies used in project:
 1. Laravel Framework 7.26.0
